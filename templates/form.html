@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Allocation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        form { display: flex; flex-direction: column; width: 300px; }
+        label { margin-bottom: 10px; }
+        input, select { margin-bottom: 20px; padding: 10px; }
+        button { padding: 10px; background-color: #007BFF; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Get Allocation</h1>
+    <form method="post" action="/get_allocation">
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date" required>
+
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date" required>
+
+        <label for="homepass_id">Homepass ID:</label>
+        <input type="text" id="homepass_id" name="homepass_id" required>
+
+        <label for="vendor_name">Vendor Name:</label>
+        <input type="text" id="vendor_name" name="vendor_name" required>
+
+        <label for="city_code">City Code:</label>
+        <input type="text" id="city_code" name="city_code">
+
+        <label for="wo_type">Work Order Type:</label>
+        <select id="wo_type" name="wo_type">
+            <option value="onboarding">Onboarding</option>
+            <!-- Add other options if needed -->
+        </select>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
