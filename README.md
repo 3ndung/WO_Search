@@ -4,4 +4,7 @@ Simply enter the WO number in the text box, and get instant results.
 Designed to simplify daily tasks—now you can check WO status anytime, by yourself
 :D
 
+![Alt text]([(https://github.com/3ndung/WO_Search/blob/main/Screenshot%202025-08-20%20at%2009.08.27.png)])
+![Alt text]([(https://github.com/3ndung/WO_Search/blob/main/Screenshot%202025-08-20%20at%2009.08.43.png)])
+
 
