@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Homepass Detail</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+    <h1>Homepass Detail</h1>
+    {% if "error" in result %}
+        <p>{{ result.error }}</p>
+    {% else %}
+        <p>Status: {{ result.status }}</p>
+        <p>Code: {{ result.code }}</p>
+        <p>Message: {{ result.message }}</p>
+        <h2>Data:</h2>
+        <ul>
+            {% for attr in result.data.attributesInfo %}
+                <li>{{ attr.name }}: {{ attr.value }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>
