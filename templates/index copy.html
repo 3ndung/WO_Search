@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Automation Controller</title>
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <style>
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .card { background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .progress-bar { height: 20px; background: #e9ecef; border-radius: 4px; overflow: hidden; }
+        .progress { height: 100%; background: #0d6efd; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #0d6efd; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .status-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
+        .status-running { background-color: #198754; }
+        .status-idle { background-color: #6c757d; }
+        .status-error { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Automation Controller</h1>
+        
+        <div class="card">
+            <h2>Current Status</h2>
+            <div id="status-display" hx-get="/status" hx-trigger="every 2s">
+                {% include 'status.html' %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Start Automation</h2>
+            <form hx-post="/start" hx-encoding="multipart/form-data">
+                <input type="file" name="file" accept=".txt" required>
+                <button type="submit" class="btn btn-primary" 
+                    {% if state.running %}disabled{% endif %}>
+                    Start
+                </button>
+                <button type="button" class="btn btn-danger" 
+                    hx-post="/stop"
+                    {% if not state.running %}disabled{% endif %}>
+                    Stop
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automation Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --info: #4895ef;
+            --warning: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+        
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border: none;
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .status-card {
+            background: white;
+        }
+        
+        .progress-container {
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            background-color: #e9ecef;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary), var(--info));
+            transition: width 0.5s ease;
+        }
+        
+        .config-card {
+            background: #ffffff;
+        }
+        
+        .automation-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .status-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        
+        .running {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: #4cc9f0;
+        }
+        
+        .idle {
+            background-color: rgba(108, 117, 125, 0.2);
+            color: #6c757d;
+        }
+        
+        .completed {
+            background-color: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+        }
+        
+        .error {
+            background-color: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+        
+        .current-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .file-upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+        
+        .file-upload-area.dragover {
+            border-color: var(--success);
+            background: rgba(76, 201, 240, 0.1);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: #adb5bd;
+            margin-bottom: 15px;
+        }
+        
+        .config-table th {
+            background-color: #f1f3f9;
+        }
+        
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .log-entry {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-time {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+        
+        .log-message {
+            font-weight: 500;
+        }
+        
+        .log-success {
+            color: #28a745;
+        }
+        
+        .log-error {
+            color: #dc3545;
+        }
+        
+        .log-info {
+            color: #17a2b8;
+        }
+        
+        .log-warning {
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold text-primary">
+                <i class="bi bi-robot"></i> Automation Tool
+            </h1>
+            <p class="lead text-muted">Automate your workflows with this powerful tool</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Status Card -->
+            <div class="col-lg-4">
+                <div class="card status-card h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-speedometer2 me-2"></i> Automation Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h6 class="text-muted mb-1">Current Status</h6>
+                                <span class="status-badge 
+                                    {% if state.status == 'Idle' %}idle
+                                    {% elif state.status == 'Starting...' or state.status == 'Running' %}running
+                                    {% elif state.status == 'Completed and closed' %}completed
+                                    {% else %}error
+                                    {% endif %}">
+                                    {{ state.status }}
+                                </span>
+                            </div>
+                            <div>
+                                <i class="bi bi-circle-fill 
+                                    {% if state.status == 'Idle' %}text-secondary
+                                    {% elif state.status == 'Starting...' or state.status == 'Running' %}text-info
+                                    {% elif state.status == 'Completed and closed' %}text-success
+                                    {% else %}text-danger
+                                    {% endif %}" 
+                                    style="font-size: 1.5rem;"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-1">Progress</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>{{ state.progress }} / {{ state.total }}</span>
+                                <span>{{ (state.progress / state.total * 100) | round(1) if state.total > 0 else 0 }}%</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar" 
+                                    role="progressbar" 
+                                    style="width: {{ (state.progress / state.total * 100) if state.total > 0 else 0 }}%"
+                                    aria-valuenow="{{ state.progress }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="{{ state.total }}"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-1">Current Item</h6>
+                            <div class="current-item">
+                                {% if state.current_item %}
+                                    {{ state.current_item }}
+                                {% else %}
+                                    <span class="text-muted">No active item</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if state.error %}
+                        <div class="alert alert-danger">
+                            <h6 class="alert-heading">
+                                <i class="bi bi-exclamation-octagon-fill me-2"></i> Error
+                            </h6>
+                            <div class="mb-0">{{ state.error }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="automation-controls">
+                            <form action="/start" method="post" enctype="multipart/form-data" id="uploadForm">
+                                <input type="file" name="file" id="fileInput" class="d-none" accept=".txt" required>
+                                <button type="button" class="btn btn-primary w-100" id="uploadBtn"
+                                    {% if state.running %}disabled{% endif %}>
+                                    <i class="bi bi-upload me-2"></i>Upload File
+                                </button>
+                            </form>
+                            
+                            <form action="/stop" method="post">
+                                <button type="submit" class="btn btn-danger w-100"
+                                    {% if not state.running %}disabled{% endif %}>
+                                    <i class="bi bi-stop-circle me-2"></i>Stop
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- File Upload Card -->
+            <div class="col-lg-8">
+                <div class="card h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-file-earmark-arrow-up me-2"></i> Upload File
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="file-upload-area" id="dropArea">
+                            <div class="upload-icon">
+                                <i class="bi bi-cloud-arrow-up"></i>
+                            </div>
+                            <h5>Drag & Drop your file here</h5>
+                            <p class="text-muted">or click to browse</p>
+                            <p class="small text-muted">Supported format: .txt</p>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5 class="mb-3">Instructions</h5>
+                            <ol>
+                                <li>Upload a text file containing the items to process</li>
+                                <li>Each line in the file should contain one item</li>
+                                <li>Click "Start Automation" to begin processing</li>
+                                <li>Monitor progress in the status panel</li>
+                                <li>You can stop the automation at any time</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5 class="mb-3">System Configuration</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered config-table">
+                                    <tr>
+                                        <th>Target URL</th>
+                                        <td>{{ CONFIG.url }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Username</th>
+                                        <td>{{ CONFIG.username }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Password</th>
+                                        <td>••••••••</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Logs Card -->
+        <div class="card mt-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-check me-2"></i> Activity Log
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="log-list">
+                    <div class="log-entry">
+                        <div class="log-time">Just now</div>
+                        <div class="log-message log-info">
+                            <i class="bi bi-info-circle me-2"></i>Application ready
+                        </div>
+                    </div>
+                    {% if state.status != 'Idle' %}
+                    <div class="log-entry">
+                        <div class="log-time">Recently</div>
+                        <div class="log-message 
+                            {% if state.status == 'Completed and closed' %}log-success
+                            {% elif state.error %}log-error
+                            {% else %}log-info
+                            {% endif %}">
+                            <i class="bi 
+                                {% if state.status == 'Completed and closed' %}bi-check-circle
+                                {% elif state.error %}bi-exclamation-circle
+                                {% else %}bi-arrow-repeat
+                                {% endif %} me-2"></i>
+                            {{ state.status }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if state.current_item %}
+                    <div class="log-entry">
+                        <div class="log-time">Currently processing</div>
+                        <div class="log-message">
+                            <i class="bi bi-arrow-right-circle me-2 text-primary"></i>
+                            {{ state.current_item }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <footer class="mt-5">
+            <p class="mb-1">Automation Tool v1.0</p>
+            <p class="text-muted small">Processed items: {{ state.progress }} of {{ state.total }}</p>
+        </footer>
+    </div>
+    
+    <script>
+        // File upload handling
+        document.getElementById('uploadBtn').addEventListener('click', function() {
+            document.getElementById('fileInput').click();
+        });
+        
+        document.getElementById('fileInput').addEventListener('change', function() {
+            if (this.files.length > 0) {
+                document.getElementById('uploadForm').submit();
+            }
+        });
+        
+        // Drag and drop functionality
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('dragover');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('dragover');
+        }
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length) {
+                fileInput.files = files;
+                document.getElementById('uploadForm').submit();
+            }
+        }
+        
+        // Auto-refresh status every 3 seconds
+        setInterval(() => {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    // Update progress bar
+                    const progressBar = document.querySelector('.progress-bar');
+                    const progressPercent = data.total > 0 ? (data.progress / data.total * 100) : 0;
+                    progressBar.style.width = `${progressPercent}%`;
+                    
+                    // Update progress text
+                    document.querySelector('.progress-container .d-flex span:first-child').textContent = 
+                        `${data.progress} / ${data.total}`;
+                    document.querySelector('.progress-container .d-flex span:last-child').textContent = 
+                        `${Math.round(progressPercent)}%`;
+                    
+                    // Update status badge
+                    const statusBadge = document.querySelector('.status-badge');
+                    statusBadge.textContent = data.status;
+                    
+                    // Update status badge class
+                    statusBadge.className = 'status-badge ';
+                    if (data.status.includes('Idle') || data.status === 'Partial Completion') {
+                        statusBadge.classList.add('idle');
+                    } else if (data.status.includes('Starting') || data.status.includes('Running') || data.status === 'Stopping...') {
+                        statusBadge.classList.add('running');
+                    } else if (data.status.includes('Completed')) {
+                        statusBadge.classList.add('completed');
+                    } else {
+                        statusBadge.classList.add('error');
+                    }
+                    
+                    // Update current item
+                    const currentItemDiv = document.querySelector('.current-item');
+                    if (data.current_item) {
+                        currentItemDiv.textContent = data.current_item;
+                        currentItemDiv.innerHTML = data.current_item; // Use innerHTML to preserve any formatting if needed
+                    } else {
+                        currentItemDiv.innerHTML = '<span class="text-muted">No active item</span>';
+                    }
+                    
+                    // Update buttons state
+                    document.getElementById('uploadBtn').disabled = data.running;
+                    document.querySelector('.btn-danger').disabled = !data.running;
+                    
+                    // Update status icon
+                    const statusIcon = document.querySelector('.card-body .d-flex .bi-circle-fill');
+                    if (statusIcon) {
+                        if (data.status.includes('Idle') || data.status === 'Partial Completion') {
+                            statusIcon.classList.remove('text-info', 'text-success', 'text-danger');
+                            statusIcon.classList.add('text-secondary');
+                        } else if (data.status.includes('Starting') || data.status.includes('Running') || data.status === 'Stopping...') {
+                            statusIcon.classList.remove('text-secondary', 'text-success', 'text-danger');
+                            statusIcon.classList.add('text-info');
+                        } else if (data.status.includes('Completed')) {
+                            statusIcon.classList.remove('text-secondary', 'text-info', 'text-danger');
+                            statusIcon.classList.add('text-success');
+                        } else {
+                            statusIcon.classList.remove('text-secondary', 'text-info', 'text-success');
+                            statusIcon.classList.add('text-danger');
+                        }
+                    }
+                });
+        }, 3000);
+    </script>
+</body>
+</html>

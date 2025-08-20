@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI~PyautoGui Automation Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #5e17eb;
+            --secondary: #8e44ad;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            min-height: 100vh;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 600;
+            padding: 1.5rem;
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+        }
+        
+        .progress {
+            height: 12px;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.5s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #4a0fc7, #7d3c98);
+        }
+        
+        .btn-danger {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .automation-details {
+            background-color: var(--light-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .current-item {
+            font-family: monospace;
+            background-color: #f0f0f0;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        
+        .status-icon {
+            font-size: 1.5rem;
+            margin-right: 0.75rem;
+        }
+        
+        .alert-box {
+            border-left: 4px solid var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-robot status-icon"></i>
+                            FastAPI~PyautoGui Automation Tool
+                        </div>
+                        <span class="status-badge bg-{% if state.running %}warning{% elif state.finished %}success{% elif state.error %}danger{% else %}info{% endif %}">
+                            {% if state.running %}
+                                <i class="bi bi-gear"></i> RUNNING
+                            {% elif state.finished %}
+                                <i class="bi bi-check-circle"></i> COMPLETED
+                            {% elif state.error %}
+                                <i class="bi bi-exclamation-circle"></i> ERROR
+                            {% else %}
+                                <i class="bi bi-pause-circle"></i> IDLE
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="card-body">
+                        {% if not state.running and not state.finished %}
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Upload Data File</label>
+                                <input class="form-control" type="file" name="file" id="fileInput" required>
+                                <div class="form-text">
+                                    Upload text file with device numbers (one per line)
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-play-circle"></i> Start Automation
+                                </button>
+                            </div>
+                        </form>
+                        {% elif state.finished %}
+                        <div class="text-center py-4">
+                            <div class="mb-3">
+                                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                            </div>
+                            <h4 class="mb-3">Automation Completed Successfully!</h4>
+                            <p class="text-muted">
+                                Processed {{ state.progress }} of {{ state.total }} devices
+                            </p>
+                            <a href="/" class="btn btn-primary mt-3">
+                                <i class="bi bi-arrow-repeat"></i> Restart with New File
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="automation-details">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Progress</span>
+                                <span><strong>{{ state.progress }}</strong> of <strong>{{ state.total }}</strong> devices</span>
+                            </div>
+                            
+                            <div class="progress">
+                                <div class="progress-bar" 
+                                    role="progressbar" 
+                                    style="width: {{ (state.progress / state.total * 100) if state.total > 0 else 0 }}%">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="fw-bold mb-2">Current Device:</div>
+                                <div class="current-item">{{ state.current_item }}</div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-bold">Status:</span>
+                                    <span class="ms-2">{{ state.status }}</span>
+                                </div>
+                                
+                                <button id="stopBtn" class="btn btn-danger">
+                                    <i class="bi bi-stop-circle"></i> Stop Automation
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if state.error %}
+                        <div class="alert-box alert alert-danger mt-4">
+                            <div class="d-flex">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <div>
+                                    <h5 class="alert-heading">Error Occurred</h5>
+                                    <p class="mb-0">{{ state.error }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-info-circle"></i> Automation Information
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Target System:</span>
+                                <span class="text-end">{{ CONFIG.url }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Username:</span>
+                                <span>{{ CONFIG.username }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Operations:</span>
+                                <span class="text-end">Device Import<br>Automated Login<br>Bulk Processing</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('uploadForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.getElementById('fileInput');
+            formData.append('file', fileInput.files[0]);
+            
+            const response = await fetch('/start', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                window.location.reload();
+            }
+        });
+        
+        document.getElementById('stopBtn')?.addEventListener('click', async () => {
+            await fetch('/stop', { method: 'POST' });
+            window.location.reload();
+        });
+        
+        // Auto refresh when automation is running
+        {% if state.running %}
+        setInterval(async () => {
+            const response = await fetch('/status');
+            const status = await response.json();
+            
+            // Update progress
+            if (status.running) {
+                document.querySelector('.progress-bar').style.width = 
+                    `${(status.progress / status.total * 100)}%`;
+                
+                document.querySelector('.current-item').textContent = status.current_item;
+                
+                const progressText = document.querySelector('.automation-details strong:nth-child(1)');
+                if (progressText) progressText.textContent = status.progress;
+                
+                const statusText = document.querySelector('.automation-details span:last-child');
+                if (statusText) statusText.textContent = status.status;
+            }
+            
+            // Redirect if finished
+            if (!status.running) {
+                window.location.reload();
+            }
+        }, 2000);
+        {% endif %}
+    </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<div>
+    <p>
+        Status: 
+        <span class="status-indicator 
+            {% if state.status == 'Running' %}status-running
+            {% elif state.error %}status-error
+            {% else %}status-idle{% endif %}">
+        </span>
+        {{ state.status }}
+    </p>
+    
+    {% if state.error %}
+    <p style="color: red;">Error: {{ state.error }}</p>
+    {% endif %}
+    
+    {% if state.running %}
+    <p>Processing item {{ state.progress }} of {{ state.total }}:</p>
+    <p><strong>{{ state.current_item }}</strong></p>
+    
+    <div class="progress-bar">
+        <div class="progress" style="width: {{ (state.progress / state.total) * 100 }}%"></div>
+    </div>
+    {% endif %}
+</div>
