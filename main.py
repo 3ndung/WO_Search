@@ -1,69 +1,4 @@
-Hugging Face's logo
-Hugging Face
-Models
-Datasets
-Spaces
-Community
-Docs
-Enterprise
-Pricing
 
-
-
-Spaces:
-
-bagustyo
-/
-WOSEARCH
-
-private
-
-Logs
-App
-Files
-Community
-Settings
-WOSEARCH
-/
-main.py
-
-bagustyo's picture
-bagustyo
-Upload main.py
-7f172eb
-verified
-about 1 year ago
-raw
-
-Copy download link
-history
-blame
-edit
-delete
-
-2.68 kB
-''' from fastapi import FastAPI, Request, Form, Depends
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-import requests
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
-@app.get("/", response_class=HTMLResponse)
-def home(request: Request):
-    return templates.TemplateResponse("homepass_detail.html", {"request": request})
-@app.post("/get_homepass_detail", response_class=HTMLResponse)
-async def get_homepass_detail(homepass_id: str = Form(...)):
-    url = f"http://amdocs-cm.adapter.api.gcp.excelcom.co.id/resource/homepass/detail?homepass_id={homepass_id}"
-    headers = {
-        'accept': '*/*',
-    }
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        data = response.json()
-        return templates.TemplateResponse("homepass_detail.html", {"request": request, "result": data})
-    else:
-        error_message = f"Request failed with status code {response.status_code}"
-        return templates.TemplateResponse("error.html", {"request": request, "error": error_message}) '''
 
 
 
@@ -77,7 +12,7 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 def cariix(wo_id):
-    url = 'https://107d-sg.teleows.com/XXXXXX/om_ticket'
+    url = 'https://XXX.com/XXXXXX/om_ticket'
     headers = {
         'Authorization': 'Basic XXXXXXXXX'
     }
